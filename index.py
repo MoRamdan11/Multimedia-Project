@@ -18,6 +18,7 @@ MainUI, _ = loadUiType('design.ui')
 DB = Database()
 featureExtraction = FeatureExtraction()
 
+
 class Main(QMainWindow, MainUI):
     def __init__(self, parent=None):
         self.image = []
@@ -40,16 +41,32 @@ class Main(QMainWindow, MainUI):
 
     def showResults(self):
         selector = self.comboBox.currentText()
-        if(selector == 'Mean Color Algorithm'):
-            print(selector)
-        elif(selector == 'Histogram Algorithm'):
+        meanColor = featureExtraction.get_mean(self.image)
+        matchedPaths = []
+        if selector == 'Mean Color Algorithm':
+            results = DB.mean_color_find2()
+            for result in results:
+                if ((meanColor[0] >= 0.8 * result['features'][0]) and (meanColor[0] <= 1.2 * result['features'][0])) \
+                        and (
+                        (meanColor[1] >= 0.8 * result['features'][1]) and (meanColor[1] <= 1.2 * result['features'][1])) \
+                        and ((meanColor[2] >= 0.8 * result['features'][2]) and (
+                        meanColor[2] <= 1.2 * result['features'][2])):
+                    print('query', meanColor)
+                    print('model', result['features'])
+                    matchedPaths.append(result['path'])
+            for path in matchedPaths:
+                match = cv.imread('img/' + path)
+                cv.imshow('res', match)
+                cv.waitKey(0)
+            cv.waitKey(0)
+        elif selector == 'Histogram Algorithm':
             queryHist = featureExtraction.get_histogram(self.image)
             results = DB.histogram_find()
             matchedPaths = []
             for result in results:
                 modelHist = np.float32(result['hist'])
                 compare = self.compareHist(queryHist, modelHist)
-                if compare > 0.5:
+                if compare > 0.3:
                     matchedPaths.append(result['path'])
                     print(result['path'])
             print('matched')
@@ -59,18 +76,23 @@ class Main(QMainWindow, MainUI):
                 cv.imshow('res', match)
                 cv.waitKey(0)
             cv.waitKey(0)
-        elif(selector == 'Color Layout Algorithm'):
+        elif selector == 'Color Layout Algorithm':
             matchedPaths = []
-            queryHist = featureExtraction.get_color_layout(self.image) #List of 4 Lists
+            queryHist = featureExtraction.get_color_layout(self.image)  # List of 4 Lists
             results = DB.colorLayout_find()
-            sum = 0
+            print(results[0]["colorLayout"][0])
+
             for result in results:
+                sum = 0
                 for i in range(len(queryHist)):
                     modelHist = np.float32(result['colorLayout'][i])
                     sum = sum + self.compareHist(queryHist[i], modelHist)
+
                 avg = sum / 4
-                if avg > 0.5:
-                    matchedPaths.append(avg)
+                print(avg)
+                if avg > 0.3:
+                    matchedPaths.append(result['path'])
+                print(len(matchedPaths))
             for path in matchedPaths:
                 match = cv.imread('img/' + path)
                 cv.imshow('res', match)
@@ -105,6 +127,7 @@ class Main(QMainWindow, MainUI):
                 colorLayoutList.append(quarter.tolist())
             record["colorLayout"] = colorLayoutList
             DB.insert(record)
+
 
 def main():
     app = QApplication(sys.argv)

@@ -47,10 +47,11 @@ class FeatureExtraction:
     def histogram(self, image, mask=None):
         histogram = cv.calcHist([image], [0, 1, 2], mask, self.bins,
                                 [0, 180, 0, 256, 0, 256])
-        if imutils.is_cv2():
-            histogram = cv.normalize(histogram).flatten()
-        else:
-            histogram = cv.normalize(histogram, histogram).flatten()
+        histogram = cv.normalize(histogram, histogram).flatten()
+        # if imutils.is_cv2():
+        #     histogram = cv.normalize(histogram).flatten()
+        # else:
+        #     histogram = cv.normalize(histogram, histogram).flatten()
         return histogram
 
 # descriptor = FeatureExtraction()
