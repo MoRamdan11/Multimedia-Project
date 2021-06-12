@@ -46,13 +46,8 @@ class Main(QMainWindow, MainUI):
         if selector == 'Mean Color Algorithm':
             results = DB.mean_color_find2()
             for result in results:
-                if ((meanColor[0] >= 0.8 * result['features'][0]) and (meanColor[0] <= 1.2 * result['features'][0])) \
-                        and (
-                        (meanColor[1] >= 0.8 * result['features'][1]) and (meanColor[1] <= 1.2 * result['features'][1])) \
-                        and ((meanColor[2] >= 0.8 * result['features'][2]) and (
-                        meanColor[2] <= 1.2 * result['features'][2])):
-                    print('query', meanColor)
-                    print('model', result['features'])
+                sim = self.calculate_distance(result['features'], meanColor)
+                if sim > 90:
                     matchedPaths.append(result['path'])
             for path in matchedPaths:
                 match = cv.imread('img/' + path)
@@ -127,6 +122,19 @@ class Main(QMainWindow, MainUI):
                 colorLayoutList.append(quarter.tolist())
             record["colorLayout"] = colorLayoutList
             DB.insert(record)
+
+    def calculate_distance(self, img1_mean, img2_mean):
+        redMean = (img1_mean[0] + img2_mean[0])/2
+        r = float(img1_mean[0]) - float(img2_mean[0])
+        g = float(img1_mean[1]) - float(img2_mean[1])
+        b = float(img1_mean[2]) - float(img2_mean[2])
+        r_weight = 2 + redMean/256
+        g_weight = 4.0
+        b_weight = 2 + (255 - redMean)/256
+        colorDistance = np.sqrt(r_weight*r*r + g_weight*g*g + b_weight*b*b)
+        maxColorDis = 764.8339663572415
+        similarity = round(((maxColorDis-colorDistance)/maxColorDis)*100)
+        return similarity
 
 
 def main():
