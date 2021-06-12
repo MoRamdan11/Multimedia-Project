@@ -3,7 +3,7 @@ import imutils
 import numpy as np
 class FeatureExtraction:
     def __init__(self):
-        self.bins = (8, 12, 4)
+        self.bins = (8, 8, 4)
 
     def get_mean(self, image):
         img2_av_R = np.mean(image[:, :, 2])
@@ -40,6 +40,14 @@ class FeatureExtraction:
             features_vector.append(hist)
         return features_vector
 
+    def get_color_layout2(self, image):
+        features_vector = []
+        layouts = self.crop_img(image, 0)
+        for i in layouts:
+            hist = self.get_mean(i)
+            features_vector.append(hist)
+        return features_vector
+
     def get_histogram(self, image):
         image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
         return self.histogram(image, None)
@@ -48,34 +56,59 @@ class FeatureExtraction:
         histogram = cv.calcHist([image], [0, 1, 2], mask, self.bins,
                                 [0, 180, 0, 256, 0, 256])
         histogram = cv.normalize(histogram, histogram).flatten()
-        # if imutils.is_cv2():
-        #     histogram = cv.normalize(histogram).flatten()
-        # else:
-        #     histogram = cv.normalize(histogram, histogram).flatten()
         return histogram
 
-# descriptor = FeatureExtraction()
-# img = cv.imread('images/Salah2.jpg')
-# #img = cv.resize(img, (600, 500), interpolation=cv.INTER_AREA)
-# img2 = cv.imread('images/salah1.jpg')
-# img2 = cv.resize(img2, (600, 500), interpolation=cv.INTER_AREA)
-# v1 = descriptor.histogram(img, (8, 12, 4), None)
-# v2 = descriptor.histogram(img2, (8, 12, 4), None)
-# # print(v1)
-# # print('-------------------------')
-# # print(v2)
-def compareHist(HQ, HM): #HM is histogram of the Model Image
-    diff = cv.compareHist(HQ, HM, cv.HISTCMP_INTERSECT)
-    sum = 0
-    for i in HM:
-        sum = sum + i
-    return diff / sum
+    def color_layout_mean_color(self,img):
+        features_vector = []
 
-# diff = compareHist(v1, v2)
-# print(diff)
-# # sum = 0
-# # for i in v2:
-# #     sum = sum + i
-# # print('sum', sum)
-# # diff = cv.compareHist(v1, v2, cv.HISTCMP_INTERSECT)
-# # print(diff / sum)
+        (h, w) = img.shape[:2]
+        (X, Y) = (int(w * 0.5), int(h * 0.5))
+
+        layouts = [
+            (0, X, 0, Y),
+            (X, w, 0, Y),
+            (X, w, Y, h),
+            (0, X, Y, h)
+
+        ]
+
+        for (startX, endX, startY, endY) in layouts:
+            cornerMask = np.zeros(img.shape, dtype="uint8")
+            cv.rectangle(cornerMask, (startX, startY), (endX, endY), (255,255,255), -1)
+            segment = cv.bitwise_and(img, cornerMask)
+            features_vector.append(self.calc_average_color(segment))
+
+        return  features_vector
+
+
+
+    def calc_average_color(self, img):
+        # img = cv.cvtColor(np.array(img), cv.COLOR_RGB2BGR)
+        rows, cols, _ = img.shape
+        color_percentage = []
+        color_B = 0
+        color_G = 0
+        color_R = 0
+        color_N = 0  # not r or g or b but gray
+
+        for i in range(rows):
+            for j in range(cols):
+                k = img[i, j]
+                if k[0] > k[1] and k[0] > k[2]:
+                    color_B = color_B + 1
+                    continue
+                if k[1] > k[0] and k[1] > k[2]:
+                    color_G = color_G + 1
+                    continue
+                if k[2] > k[0] and k[2] > k[1]:
+                    color_R = color_R + 1
+                    continue
+        color_N = 1 -(color_R+color_G+color_B)
+
+
+        pix_total = rows * cols
+        color_percentage.append(float(color_B / pix_total))
+        color_percentage.append(float(color_G / pix_total))
+        color_percentage.append(float(color_R / pix_total))
+
+        return color_percentage

@@ -21,7 +21,7 @@ class Database:
                                 {"features.2": {"$lt": 1.1 * query_img_mean[0]}}]}]}, {"_id": 0, "path": 1})
 
     def mean_color_find2(self):
-        return  self.images_collection.find({}, {"_id": 0, "path": 1, "features": 1})
+        return self.images_collection.find({}, {"_id": 0, "path": 1, "features": 1})
 
     def histogram_find(self):
         return self.images_collection.find({}, {"_id": 0, "path": 1, "hist": 1})
@@ -29,7 +29,22 @@ class Database:
     def colorLayout_find(self):
         return self.images_collection.find({}, {"_id": 0, "path": 1, "colorLayout": 1})
 
+    def colorLayout_find2(self):
+        return self.images_collection.find({}, {"_id": 0, "path": 1, "colorLayout2": 1})
+
     def delete_all(self):
         self.images_collection.delete_many({})
 
+    #Videos Collection Functions Define
+    def insert_video(self, video):
+        self.videos_collection.insert_one(video)
+        print('stored')
 
+    def mean_color_find_video(self):
+        return self.videos_collection.find({}, {"_id": 0, "path": 1, "features": 1})
+
+    def histogram_find_video(self):
+        return self.videos_collection.find({}, {"_id": 0, "path": 1, "hist": 1})
+
+    def destroy_videos_collection(self):
+        self.videos_collection.delete_many({})
