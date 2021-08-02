@@ -1,6 +1,10 @@
 # Multimedia-Content-Based-Retrieval-System
 A group project provided to CSE412-Selected topics in Computer Engineering course at Faculty of Engineering Ain Shams University.
 
+## Team Members
+* Gerges Wegeh
+* Mohamed Ramadan
+
 ## Tools used:
 * Python
 * PyQt5
