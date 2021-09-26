@@ -24,4 +24,4 @@ A group project provided to CSE412-Selected topics in Computer Engineering cours
 3- Watch the demo vedio to apply the CBIR and CBVR algorithms<br/>
 
 ## Demo Vedio Link
-https://www.youtube.com/watch?v=CsPWWU-AjPA
+https://youtu.be/LUZGXWsvJPM
